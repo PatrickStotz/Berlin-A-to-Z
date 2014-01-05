@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<meta name="http-equiv" content="Content-type: text/html; charset=UTF-8"/>
+<html>
+<head>
+<title>Berlin intra-city migration</title>
+<!-- <link href="./lib/bootstrap.min.css" rel = "stylesheet" type = "text/css" > -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+<link href='http://fonts.googleapis.com/css?family=Lora:700italic' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+
+<style type="text/css">
+#tt {pointer-events: none; color:white;}
+#tipContainer {font-size:16px; position:absolute; width:180px; z-index:100; background-repeat:no-repeat; text-align:left; line-height:20px;}
+#tipLocation {font-weight:normal; font-family:Lora; font-style:italic; text-transform:uppercase; color:white; margin:0px; padding:6px 10px; background:#333; font-size:13px;}
+#tipCount {font-weight:normal; font-family:Muli; font-size:32px; letter-spacing:-1px; margin:0px; padding:0px 10px 10px 10px; color:#333;}
+#tipKey {font-weight:normal; font-size:10px; color:#333; margin:0px; padding:5px 5px 5px 10px; background:rgba(218,218,218,0.7);}
+#tt2 {pointer-events: none; color:white;}
+#tipContainer2 {font-size:16px; position:absolute; width:250px; z-index:100; background-repeat:no-repeat; text-align:left; line-height:20px;}
+#tipLocation2 {font-weight:normal; font-family:Lora; font-style: italic; text-transform:uppercase; color: white; margin:0px; padding:6px 10px; background:#333; font-size:13px;}
+#tipCount2 {font-weight:bold; font-family:Muli; font-size:32px; letter-spacing:-1px; margin:0px; padding:0px 10px 10px 10px; color:#333;}
+#tipKey2 {font-weight:normal; font-size:10px; color:#333; margin:0px; padding:5px 5px 5px 10px; background:rgba(218,218,218,0.7);}
+#tt3 {pointer-events: none; color:white;}
+#tipContainer3 {font-size:16px; position:absolute; width:250px; z-index:100; background-repeat:no-repeat; text-align:left; line-height:20px;}
+#tipLocation3 {font-weight:normal; font-family:Lora; font-style: italic; text-transform:uppercase; color:white; margin:0px; padding:6px 10px; background:#333; font-size:13px; text-align:center;}
+#tipCount3 {font-weight:bold; font-family:Muli; font-size:32px; letter-spacing:-1px; margin:0px; padding:0px 10px 10px 10px; color:#333;}
+#tipKey3 {font-weight:normal; font-size:11px; color:#333; margin:0px; padding:5px 5px 5px 10px; background:rgba(218,218,218,0.7); text-align:center}
+.tipClear {clear:both;}
+heading {font-weight:bold; font-size:28px; font-style: italic; text-transform:uppercase; font-family:Lora; position:absolute; width:500px; z-index:100; background-repeat:no-repeat; text-align:left; line-height:20px; margin:20px 0px 0px 25px}
+</style>
+
+</head>
+<heading>Berlin intra-city migration</heading>
+
+<!--[if IE 6]>
+  <div id="browser-error">
+  <p>This interactive graphic requires a browser with SVG support, such as <a href="http://www.google.com/chrome">Chrome</a>, <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a> or the latest <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">Internet Explorer</a>. </p>
+  <img src="http://dl.dropboxusercontent.com/u/54512470/Telefondaten_VIZ/Interactive_Explorer_static.png" width="1050" alt="Error - static preview">
+  <div id="maincontainer" style="display:none;">
+		<![endif]-->
+<!--[if IE 7]>
+  <div id="browser-error">
+  <p>This interactive graphic requires a browser with SVG support, such as <a href="http://www.google.com/chrome">Chrome</a>, <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a> or the latest <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">Internet Explorer</a>. </p>
+  <img src="http://dl.dropboxusercontent.com/u/54512470/Telefondaten_VIZ/Interactive_Explorer_static.png" width="1050" alt="Error - static preview">
+  <div id="maincontainer" style="display:none;">
+		<![endif]-->
+<!--[if IE 8]>
+  <div id="browser-error">
+  <p>This interactive graphic requires a browser with SVG support, such as <a href="http://www.google.com/chrome">Chrome</a>, <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a> or the latest <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">Internet Explorer</a>. </p>
+  <img src="http://dl.dropboxusercontent.com/u/54512470/Telefondaten_VIZ/Interactive_Explorer_static.png" width="1050" alt="Error - static preview">
+  <div id="maincontainer" style="display:none;">
+		<![endif]-->
+<div id = "maincontainer" style="position:absolute; top: 25px">
+<div id = "map"></div>
+</div>
+<body style = "padding-left: 10px;">
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script type="text/javascript">
+
+// Setup
+var width = 1050;
+var height = 720;
+
+var formatD = d3.format("+,.0f");
+
+var projection = d3.geo.mercator()
+	.center([13.48, 52.51])
+	.scale(73000)
+	.translate([width / 2 , height / 2 ]);
+
+var path = d3.geo.path()
+	.projection(projection);
+
+var lineSize = d3.scale.sqrt().domain([0, 50]).range([0.5,12]);
+
+var legend_labels = [""," 500" , "200", "100", "50", "0", "-50", "-100", "-200", "-500", ""]
+var color_domain = ([500, 200, 100, 50, 0, -50, -100, -200, -500, -1000])          
+var color = d3.scale.threshold()
+	.domain([-500, -200, -100, -50, 0, 50, 100, 200, 500])
+	.range(["#00003E", "#32366B", "#646C98", "#96A2C5", "#C9D9F3", "#fee0b6", "#fdb863", "#e08214", "#b35806", "#7f3b08"]);
+
+//Create SVG element
+var svg = d3.select("#map")
+	.append("svg")
+	.attr("width", width)
+	.attr("height", height)
+	.style("background", "#fff");
+
+var g = svg.append("g");
+
+// Create Reset-View-Button
+g.append("svg:rect")
+    .attr("x", 790)
+    .attr("y", 10)
+    .attr("width", 250)
+    .attr("height", 32)
+    .attr("class", "button")
+    .style("fill", "#333")
+    .style("visibility", "hidden");
+
+g.append("svg:text")
+    .attr("x", 915)
+    .attr("y", 30)
+    .attr("class", "button")
+    .attr("text-anchor", "middle")
+    .attr("font-family", "Lora")
+	.attr("font-size", "13px")
+	.attr("font-weight", "bold")
+	.attr("font-style", "italic")
+	.attr("fill", "white")
+    .text("RESET VIEW")
+    .attr("pointer-events", "none")
+    .style("visibility", "hidden");
+
+// Create switch-buttons for displaying only positive/negative lines + text
+g.append("svg:rect")
+    .attr("x", 790)
+    .attr("y", 340)
+    .attr("width", 120)
+    .attr("height", 32)
+    .attr("class", "button2")
+    .style("fill", "7f3b08")
+    .style("visibility", "hidden");
+
+g.append("svg:text")
+    .attr("x", 850)
+    .attr("y", 360)
+    .attr("class", "button2")
+    .attr("text-anchor", "middle")
+    .attr("font-family", "Lora")
+	.attr("font-size", "13px")
+	.attr("font-weight", "bold")
+	.attr("font-style", "italic")
+	.attr("fill", "white")
+    .text("POSITIVE")
+    .attr("pointer-events", "none")
+    .style("visibility", "hidden");
+
+g.append("svg:rect")
+    .attr("x", 920)
+    .attr("y", 340)
+    .attr("width", 120)
+    .attr("height", 32)
+    .attr("class", "button3")
+    .style("fill", "#00003E")
+    .style("visibility", "hidden");
+
+g.append("svg:text")
+    .attr("x", 980)
+    .attr("y", 360)
+    .attr("class", "button3")
+    .attr("text-anchor", "middle")
+    .attr("font-family", "Lora")
+	.attr("font-size", "13px")
+	.attr("font-weight", "bold")
+	.attr("font-style", "italic")
+	.attr("fill", "white")
+    .text("NEGATIVE")
+    .attr("pointer-events", "none")
+    .style("visibility", "hidden");
+
+g.append("svg:text")
+	.attr("class", "button4")
+	.attr("text-anchor", "middle")
+	.attr("text-align", "center")
+	.attr("text-with", 100)
+	.attr("x", width -135)
+	.attr("y", 330)
+	.attr("font-family", "Lora")
+	.attr("font-size", "13px")
+  	.text("TOGGLE LINE VISIBILIY BY CLICK:")
+  	.style("visibility", "hidden");	
+
+// Initialize html tooltips
+var tooltip = d3.select("#maincontainer")
+	.append("div")
+	.attr("id", "tt")
+	.style("z-index", "10")
+	.style("position", "absolute")
+	.style("visibility", "hidden");
+
+var tooltip2 = d3.select("#maincontainer")
+	.append("div")
+	.attr("id", "tt2")
+	.style("z-index", "10")
+	.style("position", "absolute")
+	.style("visibility", "hidden");
+
+var tooltip3 = d3.select("#maincontainer")
+	.append("div")
+	.attr("id", "tt3")
+	.style("z-index", "10")
+	.style("position", "absolute")
+	.style("visibility", "hidden");
+
+// Load data
+queue()
+	.defer(d3.csv, "coming.csv")
+	.defer(d3.csv, "going.csv")
+	.defer(d3.json, "ortsteile.json")
+	.await(ready);
+
+// D3-Stuff	
+function ready(error, coming, going, map) {
+
+  	// Matching 
+  	for (var i = 0; i < going.length; i++) {
+		var going_abbrev = going[i].abbrev;
+		for (var j = 0; j < map.features.length; j++) {
+		 	var map_abbrev = map.features[j].properties.abbrev;
+		  
+		  	if (going_abbrev == map_abbrev) {
+				matched = true;
+				map.features[j].Name = going[i].Ortsteil;
+				console.log(map.features[j].Name);
+				map.features[j].id = going_abbrev;
+				map.features[j].saldo = going[i].sum_imm - going[i].sum_emm;
+				map.features[j].sum_imm = going[i].sum_imm;
+				map.features[j].sum_emm = going[i].sum_emm;					
+				break;
+		  	}
+		}
+	}
+
+	// Bind migration data to GeoJSON features and draw polygons
+  	g.selectAll(".Ortsteil")
+		.data(map.features)
+		.enter()
+		.append("path")
+		.attr("class", "Ortsteil")
+		.attr("id", function (d) {return d.id;})
+		.attr("Name", function (d) {return d.Name;})
+		.attr("stroke-width", 0.8)
+		.style("stroke", "white")
+		.attr("d", path)
+		.style("fill", function(d) {return color(d.saldo);})
+		.style("fill-opacity",  1)
+
+	// Initialize path bound events
+		.on("mouseover", function (d) {return toolOver(d, this);})
+		.on("mousemove", function (d) {
+			var m = d3.mouse(this);
+	  		mx = m[0];
+	  		my = m[1];
+	  		return toolMove(mx, my, d);
+		})
+		.on("mouseout", function (d) {return toolOut(d, this);})
+		.on("click", function (d) {return switchview(d);});
+
+	// Initialize button bound events
+	d3.selectAll(".button")
+		.on("click", function (d) {reset()});
+	
+	var display_positive = true;
+	var display_negative = true;
+
+	g.selectAll(".button2")
+		.on("click", function (d) {togglepositive()});
+
+	g.selectAll(".button3")
+		.on("click", function (d) {togglenegative()});
+
+
+	// Interactions
+
+	function toolOver(v, thepath) {
+		thepath.parentNode.appendChild(thepath) //reorder paths to bring hovered element to the front
+		d3.select(thepath).style({
+			"stroke-width": "2",
+			"stroke": "#222",
+			"cursor":"pointer"
+		});
+		return tooltip.style("visibility", "visible");
+	};
+
+	function toolMove(mx, my, data) {	
+		if (my < 160) {my = 160}; // prevent tooltips from overlapping with heading
+		if (mx < 120) {mx = 120}; // or beeing displayed outside the canvas
+		return tooltip.style("top", my + -140 + "px").style("left", mx - 120 + "px").html("<div id='tipContainer'><div id='tipLocation'><b>" + data.Name + "</b></div><div id='tipKey'>Migration in: <b>" + data.sum_imm + "</b><br>Migration out: <b>" + data.sum_emm + "</b><br>Net migration: <b>" + data.saldo + "</b></div><div class='tipClear'></div> </div>");
+	};
+
+	function toolOut(m, thepath) {
+		d3.select(thepath).style({
+			"stroke-width": "0.8",
+			"stroke": "white",
+			"cursor":""
+		});
+		return tooltip.style("visibility", "hidden");
+	};
+		
+	function toolSelected3 (selected) {
+		return tooltip3.style("top", "60px").style("left", "790px").html("<div id='tipContainer3'><div id='tipLocation3'><b>" + selected.Name + "</b></div><div id='tipKey3'>Migration in: <b>" + selected.sum_imm + "</b><br>Migration out: <b>" + selected.sum_emm + "</b><br>Net migration: <b>" + selected.saldo + "</b></div><div class='tipClear'></div> </div>").style("visibility", "visible");
+	};
+
+	function toolOver2(v, thepath) {
+		// reorder paths to bring selected element and referenced district to the front
+		d3.select(thepath).style({
+			"opacity": "1",
+			"cursor":"pointer"
+		});
+		var sel_destination = thepath.getAttribute("to_abbrev");
+		d3.select("#" + sel_destination).style({
+			"stroke-width": "2",
+			"stroke": "#222",
+			"cursor":"pointer"
+		});
+		return tooltip2.style("visibility", "visible");
+	};
+	
+	function toolOut2(m, thepath) {
+		d3.select(thepath).style({
+			"opacity": "0.65",
+			"cursor":""
+		});
+		var sel_destination = thepath.getAttribute("to_abbrev");
+		d3.select("#" + sel_destination).style({
+			"stroke-width": "0.8",
+			"stroke": "white",
+			"cursor":""
+		});
+		return tooltip2.style("visibility", "hidden");
+	};
+
+	function toolMove2(mx, my, home, end, v1, v2) {
+		var diff = v1-v2;
+		if (my < 160) {my = 160}; // prevent tooltips from overlapping with heading
+		if (mx < 120) {mx = 120}; // or beeing displayed outside the canvas
+		return tooltip2.style("top", my + -140 + "px").style("left", mx - 120 + "px").html("<div id='tipContainer2'><div id='tipLocation'><b>" + home + " / " + end + "</b></div><div id='tipKey2'>Migration " + home + " to " + end +": <b>" + v1 + "</b><br>Migration, " + end + " to " + home +": <b>" + v2 + "</b><br>Net change, " + home + ": <b>" + formatD(v2-v1) + "</b></div><div class='tipClear'></div> </div>");
+	};
+
+	function switchview(selected) {
+		tooltip.style("visibility", "hidden");
+
+		var selname = selected.Name;
+		var selname_abbrev = selected.id;
+
+		var homex = path.centroid(selected)[0];
+	  	var homey = path.centroid(selected)[1];
+	  	
+	  	// Switch active legend and display buttons
+	  	g.selectAll(".button, .button2, .button3, .button4, .legend2")
+	  		.style("visibility", "visible");
+	  		
+	  	g.selectAll(".legend1")
+	  		.style("visibility", "hidden");
+
+		// Reduce opacity of choropleth map
+		g.selectAll(".Ortsteil")
+			.transition()
+			.style("fill-opacity", 0.25)
+			.duration(1200);
+		
+		// Bring selected district to the front + highlight it, erase old selections
+		g.selectAll(".Ortsteil")
+			.sort(function (a, b) { 
+      			if (a.Name == selname) {return 1;}
+      			else {return -1;}
+      		})
+			.style({
+			"stroke-width": "0.8",
+			"stroke": "white",
+			});
+
+		d3.select("#" + selname_abbrev).style({
+			"stroke-width": "2",
+			"stroke": "black",
+			"cursor":"pointer"
+		});
+
+		//disable Tooltip1, enable Tooltip 3
+		g.selectAll(".Ortsteil")
+			.on("mouseover", "")
+			.on("mousemove", "")
+			.on("mouseout", "");
+		tooltip3.style("visibility", "visible");
+	  	toolSelected3(selected);
+
+	  	// Remove existing lines
+	  	g.selectAll(".goingline, .goingline_n, .goingline_p")
+	  		.attr("stroke-dasharray", 0)
+	  		.remove()
+	  
+		// Draw new lines	  
+	  	g.selectAll(".goingline")
+	  		.data(going)
+	  		.enter().append("path")
+	  		.attr("class", function (d,i) {
+	  			var finalval = - (coming[i][selname] - going[i][selname]);
+	  			if (finalval > 0) {return "goingline_p";}
+	  			else if (finalval < 0) { return "goingline_n";}
+	  			else { return "goingline";}
+	  			})
+	  		.attr("from", selname)
+	  		.attr("to_abbrev", function (d) {
+	  			return d.abbrev})
+	  
+	 		.attr("d", function(d,i) {
+	  			var abb = d.abbrev;
+	  			var finalval = - (coming[i][selname] - going[i][selname]);
+	  			
+	  			var Gebiet = d3.select("#" + abb);
+				if(!isNaN(finalval)) {
+	  				var startx = path.centroid(Gebiet[0][0].__data__)[0];
+	  				var starty = path.centroid(Gebiet[0][0].__data__)[1];
+	  			}
+	  	  		if(finalval > 0) {
+	  	    	  	return "M" + startx + "," + starty + " Q" + (startx + homex)/2 + " " + (starty + homey)/1.7 +" " + homex+" "   + homey;
+	  			} else {
+	  	  			return "M" + homex + "," + homey + " Q" + (startx + homex)/2 + " " + (starty + homey)/2.3 +" " + startx+" "   + starty;
+		  			}
+		  		})
+  		.call(transition)
+
+		.attr("stroke-width", function(d,i) {
+	  		var finalval = - (coming[i][selname] - going[i][selname]);
+			return lineSize(parseFloat(Math.abs(finalval)));
+			})
+
+		.attr("stroke", function(d,i) {
+	  		var finalval = - (coming[i][selname] - going[i][selname]);
+			if(finalval > 0) {return "#7f3b08";} 
+			if (finalval < 0) {return "#00003E";}
+		})
+		.attr("fill", "none")
+		.attr("opacity", 0.65)
+		.attr("stroke-linecap", "round")
+
+		.on("mouseover", function (d) {
+			// reorder paths to bring referenced district to the front
+			g.selectAll(".Ortsteil").sort(function (a, b) { 
+      			if (a.Name == selname) {return 1;}
+				if (a.Name == d.Ortsteil) {return 1;}               
+      			else {return -1;}
+      		});
+			return toolOver2(d, this);
+		})
+
+		.on("mousemove", function (d,i) {
+			var m = d3.mouse(this);
+			mx = m[0];
+			my = m[1];
+			return toolMove2(mx, my, selname, d.Ortsteil, coming[i][selname], going[i][selname]);
+		})
+
+		.on("mouseout", function (d) {
+			return toolOut2(d, this);
+		});
+
+		if (display_positive == false) {togglepositive();}
+		if (display_negative == false) {togglenegative();}
+	}
+
+	function togglepositive() {
+		display_positive = !display_positive;
+		if (display_positive == false){
+			g.selectAll(".goingline_p")
+				.style("visibility", "hidden");
+			g.select(".button2")
+				.style("fill-opacity", 0.25);
+		}
+
+		else {
+			g.selectAll(".goingline_p")
+				.style("visibility", "visible");
+			g.selectAll(".button2")
+				.style("fill-opacity", 1);
+		}
+	}	
+
+	function togglenegative() {
+		display_negative = !display_negative;
+		if (display_negative == false){
+			g.selectAll(".goingline_n")
+				.style("visibility", "hidden");
+			g.select(".button3")
+				.style("fill-opacity", 0.25);
+		}
+		else {g.selectAll(".goingline_n")
+				.style("visibility", "visible");
+			g.selectAll(".button3")
+				.style("fill-opacity", 1);
+		}
+	}
+
+	function transition(path) {
+  		path.transition()
+      		.duration(2500)
+      		.attrTween("stroke-dasharray", tweenDash);
+	}
+
+	function reset() {
+		// Remove lines
+		g.selectAll(".goingline, .goingline_n, .goingline_p")
+  			.attr("stroke-dasharray", 0)
+  			.remove();
+
+  		// Reset choropletz map opacity
+  		g.selectAll(".Ortsteil")
+			.transition()
+			.style({
+				"fill-opacity": "1",
+				"stroke-width": "0.8",
+				"stroke": "white",
+			})
+			.duration(1200);
+
+		// Hide Legende 2, Buttons & Tooltip 3
+		g.selectAll(".legend2, .button, .button2, .button3, .button4")
+	  		.style("visibility", "hidden");
+	  	tooltip3.style("visibility", "hidden");
+
+		// Enable Tooltip1
+		g.selectAll(".legend1")
+	  		.style("visibility", "visible");
+
+	 	g.selectAll(".Ortsteil")
+		 	.on("mouseover", function (d) {
+				return toolOver(d, this);
+			})
+			.on("mousemove", function (d) {
+				var m = d3.mouse(this);
+		  		mx = m[0];
+		  		my = m[1];
+		  		return toolMove(mx, my, d);
+			})
+			.on("mouseout", function (d) {
+			  	return toolOut(d, this);
+		});
+	}	
+	
+	function tweenDash() {
+  		var l = this.getTotalLength(),
+      	i = d3.interpolateString("0," + l, l + "," + l);
+  		return function(t) { return i(t); };
+	}
+}
+
+// Legend1 - Choropleth map
+
+var ls_w = 25, ls_h = 20;
+
+g.selectAll("rect2")
+	.data(color_domain)
+	.enter()
+	.append("rect")
+	.attr("class", "legend1")
+	.attr("x", function(d, i){ return width - (i*ls_w) -35;})
+	.attr("y", 200)
+	.attr("width", ls_w)
+	.attr("height", ls_h)
+	.attr("stroke-width", 1)
+	.attr("stroke", "white")
+	.style("fill", function(d, i) { return color(d); })
+	.style("opacity", 0.8);
+
+g.selectAll("text2")
+	.data(color_domain)
+	.enter()
+	.append("text")
+	.attr("class", "legend1")
+	.attr("text-anchor", "middle")
+	.attr("text-align", "center")
+	.attr("x", function(d, i){ return width - (i*ls_w) -10;})
+	.attr("y", 234)
+	.attr("font-family", "Muli")
+	.attr("font-size", "10px")
+  	.text(function(d, i){ return legend_labels[i]; });
+
+g.append("svg:text")
+	.attr("class", "legend1")
+	.attr("text-anchor", "middle")
+	.attr("text-align", "center")
+	.attr("x", function(d, i){ return width - (5*ls_w) -10;})
+	.attr("y", 192)
+	.attr("font-family", "Lora")
+	.attr("font-size", "16px")
+  	.text("NET MIGRATION PER DISTRICT");
+
+// Legend2 - Flow map
+var entries = [2, -5, 10, 20, -50]
+
+g.selectAll("lines")
+	.data(entries)
+	.enter()
+	.append("path")	
+	.attr("class", "legend2")
+	.attr("fill", "none")
+	.attr("opacity", 0.65)
+	.attr("stroke-linecap", "round")
+	.attr("d", function(d, i) {
+	  	var startx1 = width - 250;
+	  	var starty1 = 248;
+	  	var homex1 = width - 40;
+	  	var homey1 = 208 + 20*i;	  	
+  		if(d > 0) {
+    	  	return "M" + startx1 + "," + starty1 + " Q" + (startx1 + homex1)/2 + " " + (starty1 + homey1)/1.7 +" " + homex1+" "   + homey1;
+		} else {
+  			return "M" + homex1 + "," + homey1 + " Q" + (startx1 + homex1)/2 + " " + (starty1 + homey1)/2.3 +" " + startx1+" "   + starty1;
+			}
+		})
+	.attr("stroke-width", function(d) {return lineSize(parseFloat(Math.abs(d)));})
+	.attr("stroke", function(d) {
+			if(d > 0) {
+				return "#7f3b08";
+				} else {
+				return "#00003E";
+				}
+			})
+	.style("visibility", "hidden");
+
+g.selectAll("lines_labels")
+	.data(entries)
+	.enter()
+	.append("text")
+	.attr("class", "legend2")
+	.attr("text-anchor", "middle")
+	.attr("text-align", "center")
+	.attr("x", width - 22)
+	.attr("y", function(d, i) {return 212 + 20*i;})
+	.attr("font-family", "Muli")
+	.attr("font-size", "10px")
+  	.text(function(d){ return formatD(d); })
+  	.style("visibility", "hidden");
+
+g.append("svg:text")
+	.attr("class", "legend2")
+	.attr("text-anchor", "middle")
+	.attr("text-align", "center")
+	.attr("x", width -135)
+	.attr("y", 192)
+	.attr("font-family", "Lora")
+	.attr("font-size", "15px")
+  	.text("NET CHANGE (SELECTED DISTRICT)")
+  	.style("visibility", "hidden");
+
+// Mappable-Logo
+g.append("svg:text")
+    .attr("x", 25)
+    .attr("y", 710)
+    .attr("class", "logo")
+    .attr("text-anchor", "left")
+    .attr("font-family", "Lora")
+    .attr("font-style", "italic")
+	.attr("font-size", "16px")
+	.attr("font-weight", "bold")
+	.attr("font-style", "italic")
+    .text("MAPPABLE.INFO")
+    .attr("cursor", "pointer")
+	.on("click", function() { window.open("http://mappable.info"); });
+</script>
+</body>
+</html>
