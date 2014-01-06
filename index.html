@@ -213,7 +213,6 @@ function ready(error, coming, going, map) {
 		  	if (going_abbrev == map_abbrev) {
 				matched = true;
 				map.features[j].Name = going[i].Ortsteil;
-				console.log(map.features[j].Name);
 				map.features[j].id = going_abbrev;
 				map.features[j].saldo = going[i].sum_imm - going[i].sum_emm;
 				map.features[j].sum_imm = going[i].sum_imm;
